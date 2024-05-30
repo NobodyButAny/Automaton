@@ -1,0 +1,22 @@
+a^(n+1)b^(2n+1)
+
+0: ab
+1: a abb b
+2: a a abb bb b
+
+Хомский
+
+S -> A T
+T -> G1 B | b
+G1 -> GR GB
+GR -> A G1 | a
+GB -> B B
+A -> a
+B -> b
+
+Исходная:
+
+S -> a G1 b | ab
+G1 -> a G1 bb | abb
+
+Нормальная Грейбах:
