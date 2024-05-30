@@ -1,14 +1,16 @@
 import re
 
-PREC = {'*': 4, '/': 3, '+': 2, '-': 1}
+PREC = {'^': 4, '+': 3, '->': 2, '<->': 1}
 OPERATORS = list(PREC.keys())
 
 
-def tokenize(expr: str) -> list[str]:  # раскидаем на токены, regex из сети тыртырнет
-    return [i for i in re.split(' *([+\-*/()]|\d+\.\d+|\d+) *', expr) if i != '']
+def tokenize(logic_expr: str) -> list[str]:
+    pattern = r'(\b\w+\b|->|<->|\^|\+|\(|\))'
+    tokens = re.findall(pattern, logic_expr)
+    return tokens
 
 
-def into_rpn(expr: str) -> list[str]:
+def dijkstra_into_rpn(expr: str) -> list[str]:
     tokens = tokenize(expr)
     op_stack = []
     out_queue = []
@@ -29,9 +31,12 @@ def into_rpn(expr: str) -> list[str]:
         out_queue.append(op_stack.pop())
     return out_queue
 
-# 2 12 +
-# ['4', '18', '9', '3', '-', '/', '+']
-def eval_rpn(expr: list):  # само за себя говорит
+
+def to_bool(expr: str | bool):
+    return expr if isinstance(expr, bool) else True if expr == 'T' else False
+
+
+def eval_rpn(expr: list):
     i = len(expr) - 1
     while len(expr) != 1:
         parent = expr[i]
@@ -44,17 +49,14 @@ def eval_rpn(expr: list):  # само за себя говорит
         left = expr[i - 2]
         right = expr[i - 1]
         match parent:
+            case '^':
+                expr[i] = to_bool(left) and to_bool(right)
             case '+':
-                expr[i] = float(left) + float(right)
-            case '-':
-                expr[i] = float(left) - float(right)
-            case '*':
-                expr[i] = float(left) * float(right)
-            case '/':
-                if float(right) == 0:
-                    print("Деление на ноль в выражении!")
-                    exit()
-                expr[i] = float(left) / float(right)
+                expr[i] = to_bool(left) or to_bool(right)
+            case '->':
+                expr[i] = not to_bool(left) or to_bool(right)
+            case '<->':
+                expr[i] = to_bool(left) == to_bool(right)
         del expr[i - 2]
         del expr[i - 2]
         i = len(expr) - 1
@@ -62,6 +64,5 @@ def eval_rpn(expr: list):  # само за себя говорит
 
 
 if __name__ == '__main__':
-    while expr := input("Введите выражение:\n > "):
-        expr = expr.split("=")[0]
-        print(eval_rpn(into_rpn(expr)))
+    expression = input()
+    print(eval_rpn(into_rpn(expression)))
